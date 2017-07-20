@@ -1,0 +1,66 @@
+set nocompatible  
+set magic
+set completeopt=preview,menu
+set backspace=2
+set ignorecase smartcase   
+set incsearch       
+set hlsearch           
+set noerrorbells    
+set novisualbell           
+
+set shiftwidth=2            
+set expandtab
+set softtabstop=2           
+set tabstop=2
+
+"Vundel config
+filetype off
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+
+Plugin 'VundleVim/Vundle.vim'
+Plugin 'git://github.com/scrooloose/nerdtree'
+Plugin 'git://github.com/majutsushi/tagbar'
+Plugin 'git://github.com/Valloric/YouCompleteMe'
+map <C-t> :NERDTreeToggle<CR>
+autocmd vimenter * TagbarToggle
+autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
+
+call vundle#end()
+"end config
+
+set number
+filetype plugin indent on 
+set autoindent
+
+
+syntax on   
+colorscheme desert
+set encoding=UTF-8
+
+map  <F9>  :call Comp() <CR>
+map! <F9>  <Esc>:call Comp() <CR>
+map  <F12> gg=G
+map! <F12> <Esc>gg=G
+map  <C-x> <C-v>0x
+autocmd BufNewFile * exec ":call Comment()"
+autocmd BufReadPost * exec ":call Comment()"
+func! Comment()
+  if &filetype == 'cpp'
+    map  <C-c> <C-v>0I//<Esc>j
+  else 
+    map  <C-c> <C-v>0I#<Esc>j
+  endif
+endfunc
+
+func! Comp()
+	exec "w"
+	if &filetype == 'cpp'
+		:!g++ -std=c++11 -Wall % -o %< && ./%<
+	elseif &filetype == 'sh' 
+		:!bash %
+	else 
+		:!python %
+	endif
+endfunc
+
