@@ -12,6 +12,9 @@ set shiftwidth=2
 set expandtab
 set softtabstop=2           
 set tabstop=2
+set tags=
+let g:pathToTag="/"
+let g:curdir="/"
 
 "Vundel config
 filetype off
@@ -21,8 +24,9 @@ call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
 Plugin 'git://github.com/scrooloose/nerdtree'
 Plugin 'git://github.com/majutsushi/tagbar'
-Plugin 'git://github.com/Valloric/YouCompleteMe'
-map <C-t> :NERDTreeToggle<CR>
+Plugin 'skywind3000/asyncrun.vim'
+"Plugin 'git://github.com/Valloric/YouCompleteMe'
+map <C-n> :NERDTreeToggle<CR>
 autocmd vimenter * TagbarToggle
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 
@@ -32,7 +36,6 @@ call vundle#end()
 set number
 filetype plugin indent on 
 set autoindent
-
 
 syntax on   
 colorscheme desert
@@ -45,9 +48,23 @@ map! <F12> <Esc>gg=G
 map  <C-x> <C-v>0x
 autocmd BufNewFile * exec ":call Comment()"
 autocmd BufReadPost * exec ":call Comment()"
+
 func! Comment()
   if &filetype == 'cpp'
     map  <C-c> <C-v>0I//<Esc>j
+    let g:curdir=getcwd()
+    while !filereadable("./tags")
+      cd ..
+      if getcwd() == "/"
+        break
+      endif
+    endwhile
+    if filewritable("./tags")
+      let g:pathToTag=getcwd() 
+      execute ":set tags+=" . g:pathToTag . "/tags"
+      autocmd BufWritePost * call UpdateCtags()
+    endif
+    execute ":cd " . g:curdir
   else 
     map  <C-c> <C-v>0I#<Esc>j
   endif
@@ -64,3 +81,10 @@ func! Comp()
 	endif
 endfunc
 
+function! UpdateCtags()
+  execute ":cd " . g:pathToTag
+  if filewritable("./tags")
+    :AsyncRun! ctags -R --file-scope=yes --langmap=c:+.h --languages=c,c++ --links=yes --c-kinds=+p --c++-kinds=+p --fields=+iaS --extra=+q
+  endif
+  execute ":cd " . g:curdir
+endfunction
